@@ -26,13 +26,13 @@ if ( $messages === true ) 	$tabs[] = "messages";
 		js = d.createElement('script');
 		js.id = id;
 		js.async = true;
-		js.src = "//connect.facebook.net/<?php echo $locale; ?>/all.js#xfbml=1";
+		js.src = "//connect.facebook.net/<?php echo esc_js($locale); ?>/all.js#xfbml=1";
 		d.getElementsByTagName('head')[0].appendChild(js);
 	}(document));
 </script>
 <!-- SFPlugin by topdevs.net -->
 <!-- Page Plugin Code START -->
-<div class="<?php echo $like_box_classes; ?>">
+<div class="<?php echo esc_attr($like_box_classes); ?>">
 	<div class="fb-page"
 		data-href="<?php echo esc_url( $url ); ?>"
 		data-width="<?php echo esc_attr( $width ); ?>"

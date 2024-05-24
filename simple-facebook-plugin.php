@@ -3,13 +3,13 @@
 Plugin Name: Simple Like Page Plugin
 Plugin URI: http://plugins.topdevs.net/simple-like-page-plugin
 Description: Allows you to integrate Facebook "Page Plugin" into your WordPress Site.
-Version: 1.5.2
-Author: topdevs.net
-Author URI: http://codecanyon.net/user/topdevs/portfolio?ref=topdevs
+Version: 1.5.3
+Author: Illia Online
+Author URI: https://illia.onine
 License: GPLv2 or later
 */
 
-define( "SFP_VERSION", '1.5.2' );
+define( "SFP_VERSION", '1.5.3' );
 
 /**
 * Main SF Plugin Class
