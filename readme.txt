@@ -3,7 +3,7 @@
 Contributors: topdevs, illiaonline
 Tags: social, facebook, fb, fb like, like box, likebox, page plugin, widget, shortcode, responsive, template tag, sidebar, fb page plugin
 Requires at least: 4.0
-Tested up to: 6.4.3
+Tested up to: 6.5.3
 Stable tag: trunk
 License: GPLv2 or later
 
