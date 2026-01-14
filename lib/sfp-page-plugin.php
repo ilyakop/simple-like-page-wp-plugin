@@ -91,21 +91,8 @@ class SFPPagePluginWidget extends WP_Widget {
 
 		global $sfplugin;
 		
-		$default = array(
-			// default options
-			'title' 		=> 'Our Facebook Page',
-			'url'			=> 'http://www.facebook.com/topdevs.net',
-			'width'			=> '',
-			'height'		=> '',
-			'hide_cover'	=> false,
-			'show_facepile'	=> true,
-			'small_header'	=> false,
-			'timeline'		=> false,
-			'events'		=> false,
-			'messages'		=> false,
-			
-			'locale'		=> 'en_US'
-		);
+		$default = sfp_get_page_plugin_defaults();
+		$default['title'] = 'Our Facebook Page';
 
 		// Add-ons hook
 		//$instance = apply_filters( 'sfp_page_plugin_form', $instance, $default, $this, $sfplugin );
@@ -202,24 +189,22 @@ class SFPPagePluginWidget extends WP_Widget {
 } // class SFPPagePluginWidget
 
 /**
- * Add Page Plugin 'Shortcode'
+ * Default Page Plugin settings.
  *
- * @since SF Plugin 1.4
- * @author Ilya K.
+ * @since SF Plugin 2.0
  */
-
-function sfp_page_plugin_shortcode ( $instance ) {
+function sfp_get_page_plugin_defaults() {
 
 	global $sfplugin;
 
-	$instance = ( !$instance ) ? array() : $instance;
+	if ( ! $sfplugin || ! method_exists( $sfplugin, 'getPluginOptions' ) ) {
+		return array();
+	}
 
-	// Add-ons hook
-	$instance = apply_filters( "sfp_before_page_plugin", $instance, $sfplugin );
+	$defaults = $sfplugin->getPluginOptions();
 
-	extract( array_merge( array(
-		// default options
-		'url'			=> 'http://www.facebook.com/topdevs.net',
+	return array(
+		'url'			=> $defaults['url'],
 		'width'			=> '',
 		'height'		=> '',
 		'hide_cover'	=> false,
@@ -228,8 +213,28 @@ function sfp_page_plugin_shortcode ( $instance ) {
 		'timeline'		=> false,
 		'events'		=> false,
 		'messages'		=> false,
-		'locale'		=> 'en_US'
-	), $instance ) );
+		'locale'		=> $defaults['locale'],
+		'click_to_load'	=> $defaults['click_to_load'],
+		'lazy_load'		=> $defaults['lazy_load'],
+		'placeholder_text' => $defaults['placeholder_text']
+	);
+}
+
+/**
+ * Render Page Plugin markup.
+ *
+ * @since SF Plugin 2.0
+ */
+function sfp_render_page_plugin_html( $instance ) {
+
+	global $sfplugin;
+
+	$instance = ( !$instance ) ? array() : $instance;
+
+	// Add-ons hook
+	$instance = apply_filters( "sfp_before_page_plugin", $instance, $sfplugin );
+
+	extract( array_merge( sfp_get_page_plugin_defaults(), $instance ) );
 
 	ob_start();
 
@@ -237,6 +242,18 @@ function sfp_page_plugin_shortcode ( $instance ) {
 	include( $sfplugin->pluginPath . 'views/view-page-plugin.php' );
 
 	return ob_get_clean();
+}
+
+/**
+ * Add Page Plugin 'Shortcode'
+ *
+ * @since SF Plugin 1.4
+ * @author Ilya K.
+ */
+
+function sfp_page_plugin_shortcode ( $instance ) {
+
+	return sfp_render_page_plugin_html( $instance );
 }
 
 
@@ -249,27 +266,7 @@ function sfp_page_plugin_shortcode ( $instance ) {
 
 function sfp_page_plugin ( $instance = array() ) { 
 	
-	global $sfplugin;
-
-	// Add-ons hook
-	$instance = apply_filters( "sfp_before_page_plugin", $instance, $sfplugin );
-	
-	extract( array_merge( array(
-		// default options
-		'url'			=> 'http://www.facebook.com/topdevs.net',
-		'width'			=> '',
-		'height'		=> '',
-		'hide_cover'	=> false,
-		'show_facepile'	=> true,
-		'small_header'	=> false,
-		'timeline'		=> false,
-		'events'		=> false,
-		'messages'		=> false,
-		'locale'		=> 'en_US'
-	), $instance ) );
-	
-	// include Page Plugin view
-	include( $sfplugin->pluginPath . 'views/view-page-plugin.php' );
+	echo sfp_render_page_plugin_html( $instance );
 }
 
 ?>

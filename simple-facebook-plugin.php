@@ -3,13 +3,13 @@
 Plugin Name: Simple Like Page Plugin
 Plugin URI: http://plugins.topdevs.net/simple-like-page-plugin
 Description: Allows you to integrate Facebook "Page Plugin" into your WordPress Site.
-Version: 1.5.3
+Version: 2.0
 Author: Illia Online
 Author URI: https://illia.onine
 License: GPLv2 or later
 */
 
-define( "SFP_VERSION", '1.5.3' );
+define( "SFP_VERSION", '2.0' );
 
 /**
 * Main SF Plugin Class
@@ -30,6 +30,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 		public $pluginUrl;
 		public $pluginName;
 		public $optionName;
+		public $frontendAssetsEnqueued = false;
 
 		public $facebookLocalesUrl = "http://www.facebook.com/translations/FacebookLocales.xml";
 		public $locales;
@@ -68,13 +69,15 @@ if ( !class_exists( 'SFPlugin' ) ) {
 		*/
 		protected function addActions() {
 			
-			//add_action( 'admin_menu', 	array( $this, 'pluginMenu') );
+			add_action( 'admin_menu', 	array( $this, 'pluginMenu') );
 			add_action( 'admin_notices',    array( $this, 'adminNotice') );
 			add_action( 'widgets_init', 	array( $this, 'addWidgets') );
 			//add_action( 'wp_footer',		array( $this, 'addJavaScriptSDK') );
 			add_action( 'admin_init', 		array( $this, 'saveOptions' ) );
 			add_action( 'admin_init', 		array( $this, 'ignoreNotices' ) );
+			add_action( 'admin_init', 		array( $this, 'registerSettings' ) );
 			add_action( 'admin_enqueue_scripts',	array( $this, 'enqueueScriptsAdmin') );
+			add_action( 'init', array( $this, 'registerBlock' ) );
 
 			// Add settings link on Plugins page
 			$plugin = "simple-facebook-plugin/simple-facebook-plugin.php";
@@ -235,26 +238,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 		 */
 		
 		public function addJavaScriptSDK() { 
-
-			$options 	= $this->getPluginOptions();
-			$locale 	= $options['locale'];
-
-			?>
-
-		<div id="fb-root"></div>
-		<script>
-			(function(d){
-				var js, id = 'facebook-jssdk';
-				if (d.getElementById(id)) {return;}
-				js = d.createElement('script');
-				js.id = id;
-				js.async = true;
-				js.src = "//connect.facebook.net/<?php echo $locale; ?>/all.js#xfbml=1";
-				d.getElementsByTagName('head')[0].appendChild(js);
-			}(document));
-		</script>
-
-		<?php }
+			$this->enqueueFrontendAssets();
+		}
 
 		/**
 		 * Add Dashboard > Plugins Menu Page
@@ -264,7 +249,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function pluginMenu() {
 			
-			add_plugins_page('Simple Facebook Plugin Menu', 'Simple Facebook', 'read', 'simple_facebook_plugin', array( $this, "pluginMenuView" ) );
+			add_options_page( 'Simple Facebook Plugin', 'Simple Facebook', 'manage_options', 'sfp_plugin', array( $this, "pluginMenuView" ) );
 		}
 
 		/**
@@ -278,7 +263,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			$options = $this->getPluginOptions();
 			
 			// include Like Box view
-			include( $sfplugin->pluginPath . 'views/view-menu.php' );
+			include( $this->pluginPath . 'views/view-menu.php' );
 
 		}
 
@@ -324,7 +309,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function pluginSettingsLink ( $links ) {
 
-			$settings_link = '<a href="' . menu_page_url( "simple_facebook_plugin", false ) . '">Settings</a>'; 
+			$settings_link = '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>'; 
 
 			array_unshift( $links, $settings_link );
 
@@ -339,12 +324,18 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function getPluginOptions() {
 
-			$defaults = array( 
-				'locale' => "en_US" );
+			$defaults = array(
+				'url' => 'https://www.facebook.com/WordPress/',
+				'locale' => "en_US",
+				'click_to_load' => 0,
+				'lazy_load' => 1,
+				'placeholder_text' => 'Click to load Facebook content'
+			);
 
 			$defaults = apply_filters( "sfp_default_options", $defaults );
 
-			$options = get_option( $this->optionName, $defaults );
+			$options = get_option( $this->optionName, array() );
+			$options = wp_parse_args( $options, $defaults );
 
 			return $options;
 		}
@@ -380,8 +371,307 @@ if ( !class_exists( 'SFPlugin' ) ) {
 					$options['locale'] = $_POST['locale'];
 				}
 
+				if ( isset( $_POST['url'] ) && ! empty( $_POST['url'] ) ) {
+					$options['url'] = esc_url_raw( $_POST['url'] );
+				}
+
+				if ( isset( $_POST['click_to_load'] ) ) {
+					$options['click_to_load'] = (int) (bool) $_POST['click_to_load'];
+				}
+
+				if ( isset( $_POST['lazy_load'] ) ) {
+					$options['lazy_load'] = (int) (bool) $_POST['lazy_load'];
+				}
+
+				if ( isset( $_POST['placeholder_text'] ) ) {
+					$options['placeholder_text'] = sanitize_text_field( $_POST['placeholder_text'] );
+				}
+
 				$this->savePluginOptions( $options );
 			}
+		}
+
+		public function registerSettings() {
+
+			register_setting(
+				'sfp_options',
+				$this->optionName,
+				array( $this, 'sanitizeOptions' )
+			);
+
+			add_settings_section(
+				'sfp_performance_privacy',
+				'Performance & Privacy',
+				array( $this, 'renderPerformancePrivacySection' ),
+				'sfp_plugin'
+			);
+
+			add_settings_field(
+				'sfp_click_to_load',
+				'Enable click-to-load',
+				array( $this, 'renderClickToLoadField' ),
+				'sfp_plugin',
+				'sfp_performance_privacy'
+			);
+
+			add_settings_field(
+				'sfp_lazy_load',
+				'Enable lazy loading',
+				array( $this, 'renderLazyLoadField' ),
+				'sfp_plugin',
+				'sfp_performance_privacy'
+			);
+
+			add_settings_field(
+				'sfp_placeholder_text',
+				'Placeholder text',
+				array( $this, 'renderPlaceholderTextField' ),
+				'sfp_plugin',
+				'sfp_performance_privacy'
+			);
+
+			add_settings_section(
+				'sfp_locale',
+				'Localization',
+				array( $this, 'renderLocaleSection' ),
+				'sfp_plugin'
+			);
+
+			add_settings_field(
+				'sfp_url_field',
+				'Default Facebook Page URL',
+				array( $this, 'renderUrlField' ),
+				'sfp_plugin',
+				'sfp_locale'
+			);
+
+			add_settings_field(
+				'sfp_locale_field',
+				'Language',
+				array( $this, 'renderLocaleField' ),
+				'sfp_plugin',
+				'sfp_locale'
+			);
+		}
+
+		public function sanitizeOptions( $options ) {
+
+			$defaults = $this->getPluginOptions();
+
+			$clean = array();
+			$clean['url'] = isset( $options['url'] ) ? esc_url_raw( $options['url'] ) : $defaults['url'];
+			$clean['locale'] = isset( $options['locale'] ) ? sanitize_text_field( $options['locale'] ) : $defaults['locale'];
+			$clean['click_to_load'] = ! empty( $options['click_to_load'] ) ? 1 : 0;
+			$clean['lazy_load'] = ! empty( $options['lazy_load'] ) ? 1 : 0;
+			$clean['placeholder_text'] = isset( $options['placeholder_text'] ) ? sanitize_text_field( $options['placeholder_text'] ) : $defaults['placeholder_text'];
+
+			return $clean;
+		}
+
+		public function renderPerformancePrivacySection() {
+			echo '<p>Delays Facebook loading until interaction or when the embed is in view to reduce unnecessary third-party requests.</p>';
+		}
+
+		public function renderLocaleSection() {
+			echo '<p>Select the Facebook SDK locale used when loading embeds.</p>';
+		}
+
+		public function renderUrlField() {
+			$options = $this->getPluginOptions();
+			?>
+			<input type="url" class="regular-text" name="<?php echo esc_attr( $this->optionName ); ?>[url]" value="<?php echo esc_attr( $options['url'] ); ?>" />
+			<p class="description">Used when a widget, shortcode, or block does not specify a URL.</p>
+			<?php
+		}
+
+		public function renderClickToLoadField() {
+			$options = $this->getPluginOptions();
+			?>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( $this->optionName ); ?>[click_to_load]" value="1" <?php checked( 1, (int) $options['click_to_load'] ); ?> />
+				<span>Requires a click before Facebook loads.</span>
+			</label>
+			<?php
+		}
+
+		public function renderLazyLoadField() {
+			$options = $this->getPluginOptions();
+			?>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( $this->optionName ); ?>[lazy_load]" value="1" <?php checked( 1, (int) $options['lazy_load'] ); ?> />
+				<span>Loads the embed only when it enters the viewport.</span>
+			</label>
+			<?php
+		}
+
+		public function renderPlaceholderTextField() {
+			$options = $this->getPluginOptions();
+			?>
+			<input type="text" class="regular-text" name="<?php echo esc_attr( $this->optionName ); ?>[placeholder_text]" value="<?php echo esc_attr( $options['placeholder_text'] ); ?>" />
+			<p class="description">Displayed before the embed loads.</p>
+			<?php
+		}
+
+		public function renderLocaleField() {
+			$options = $this->getPluginOptions();
+			?>
+			<select name="<?php echo esc_attr( $this->optionName ); ?>[locale]">
+			<?php foreach ( $this->locales as $code => $name ) : ?>
+				<option <?php selected( ( $options['locale'] == $code ) ? 1 : 0 ); ?> value="<?php echo esc_attr( $code ); ?>" ><?php echo esc_html( $name ); ?></option>
+			<?php endforeach; ?>
+			</select>
+			<?php
+		}
+
+		public function enqueueFrontendAssets() {
+
+			if ( $this->frontendAssetsEnqueued ) {
+				return;
+			}
+
+			$this->frontendAssetsEnqueued = true;
+
+			$options = $this->getPluginOptions();
+			$should_load = apply_filters( 'sfp_should_load', true );
+			$has_consent = apply_filters( 'sfp_has_consent', true );
+
+			// Hooks for future Pro add-on consent logic.
+			do_action( 'sfp_before_load', $should_load, $has_consent );
+
+			wp_enqueue_style(
+				'sfp-frontend-style',
+				$this->pluginUrl . 'assets/css/simple-facebook-plugin.css',
+				array(),
+				SFP_VERSION
+			);
+
+			wp_enqueue_script(
+				'sfp-frontend-script',
+				$this->pluginUrl . 'assets/js/simple-facebook-plugin.js',
+				array(),
+				SFP_VERSION,
+				true
+			);
+
+			$settings = array(
+				'locale' => isset( $options['locale'] ) ? $options['locale'] : 'en_US',
+				'clickToLoadEnabled' => (bool) $options['click_to_load'],
+				'lazyLoadEnabled' => (bool) $options['lazy_load'],
+				'placeholderText' => isset( $options['placeholder_text'] ) ? $options['placeholder_text'] : 'Click to load Facebook content',
+				'shouldLoad' => (bool) $should_load,
+				'hasConsent' => (bool) $has_consent,
+			);
+
+			$settings_json = wp_json_encode( $settings );
+
+			wp_add_inline_script(
+				'sfp-frontend-script',
+				'window.sfpSettings = window.sfpSettings || {}; window.sfpSettings = Object.assign(window.sfpSettings, ' . $settings_json . ');',
+				'before'
+			);
+
+			// Hook for future Pro add-on to react after loader setup.
+			do_action( 'sfp_after_load', $should_load, $has_consent );
+		}
+
+		public function registerBlock() {
+
+			if ( ! function_exists( 'register_block_type' ) ) {
+				return;
+			}
+
+			$defaults = function_exists( 'sfp_get_page_plugin_defaults' )
+				? sfp_get_page_plugin_defaults()
+				: array();
+
+			$url_default = isset( $defaults['url'] ) ? $defaults['url'] : '';
+			$width_default = isset( $defaults['width'] ) ? $defaults['width'] : '';
+			$height_default = isset( $defaults['height'] ) ? $defaults['height'] : '';
+			$hide_cover_default = isset( $defaults['hide_cover'] ) ? (bool) $defaults['hide_cover'] : false;
+			$show_facepile_default = isset( $defaults['show_facepile'] ) ? (bool) $defaults['show_facepile'] : true;
+			$small_header_default = isset( $defaults['small_header'] ) ? (bool) $defaults['small_header'] : false;
+			$timeline_default = isset( $defaults['timeline'] ) ? (bool) $defaults['timeline'] : false;
+			$events_default = isset( $defaults['events'] ) ? (bool) $defaults['events'] : false;
+			$messages_default = isset( $defaults['messages'] ) ? (bool) $defaults['messages'] : false;
+			$locale_default = isset( $defaults['locale'] ) ? $defaults['locale'] : 'en_US';
+			$placeholder_default = isset( $defaults['placeholder_text'] ) ? $defaults['placeholder_text'] : '';
+
+			wp_register_script(
+				'sfp-block-editor',
+				$this->pluginUrl . 'assets/js/sfp-block.js',
+				array( 'wp-blocks', 'wp-element', 'wp-editor', 'wp-components', 'wp-i18n' ),
+				SFP_VERSION,
+				true
+			);
+
+			$block_defaults = array(
+				'url' => $url_default,
+				'width' => $width_default,
+				'height' => $height_default,
+				'hideCover' => $hide_cover_default,
+				'showFacepile' => $show_facepile_default,
+				'smallHeader' => $small_header_default,
+				'timeline' => $timeline_default,
+				'events' => $events_default,
+				'messages' => $messages_default,
+				'locale' => $locale_default,
+				'placeholderText' => $placeholder_default,
+			);
+
+			wp_add_inline_script(
+				'sfp-block-editor',
+				'window.sfpBlockDefaults = ' . wp_json_encode( $block_defaults ) . ';',
+				'before'
+			);
+
+			register_block_type( 'simple-facebook-plugin/page', array(
+				'editor_script' => 'sfp-block-editor',
+				'render_callback' => array( $this, 'renderBlock' ),
+				'attributes' => array(
+					'url' => array( 'type' => 'string', 'default' => $url_default ),
+					'width' => array( 'type' => 'string', 'default' => $width_default ),
+					'height' => array( 'type' => 'string', 'default' => $height_default ),
+					'hideCover' => array( 'type' => 'boolean', 'default' => $hide_cover_default ),
+					'showFacepile' => array( 'type' => 'boolean', 'default' => $show_facepile_default ),
+					'smallHeader' => array( 'type' => 'boolean', 'default' => $small_header_default ),
+					'timeline' => array( 'type' => 'boolean', 'default' => $timeline_default ),
+					'events' => array( 'type' => 'boolean', 'default' => $events_default ),
+					'messages' => array( 'type' => 'boolean', 'default' => $messages_default ),
+					'locale' => array( 'type' => 'string', 'default' => $locale_default ),
+					'clickToLoad' => array( 'type' => 'boolean' ),
+					'placeholderText' => array( 'type' => 'string', 'default' => $placeholder_default ),
+				),
+			) );
+		}
+
+		public function renderBlock( $attributes ) {
+
+			$instance = array(
+				'url' => isset( $attributes['url'] ) ? $attributes['url'] : '',
+				'width' => isset( $attributes['width'] ) ? $attributes['width'] : '',
+				'height' => isset( $attributes['height'] ) ? $attributes['height'] : '',
+				'hide_cover' => isset( $attributes['hideCover'] ) ? (bool) $attributes['hideCover'] : false,
+				'show_facepile' => isset( $attributes['showFacepile'] ) ? (bool) $attributes['showFacepile'] : true,
+				'small_header' => isset( $attributes['smallHeader'] ) ? (bool) $attributes['smallHeader'] : false,
+				'timeline' => isset( $attributes['timeline'] ) ? (bool) $attributes['timeline'] : false,
+				'events' => isset( $attributes['events'] ) ? (bool) $attributes['events'] : false,
+				'messages' => isset( $attributes['messages'] ) ? (bool) $attributes['messages'] : false,
+				'locale' => isset( $attributes['locale'] ) ? $attributes['locale'] : 'en_US',
+			);
+
+			if ( array_key_exists( 'clickToLoad', $attributes ) ) {
+				$instance['click_to_load'] = (bool) $attributes['clickToLoad'];
+			}
+
+			if ( ! empty( $attributes['placeholderText'] ) ) {
+				$instance['placeholder_text'] = $attributes['placeholderText'];
+			}
+
+			if ( function_exists( 'sfp_render_page_plugin_html' ) ) {
+				return sfp_render_page_plugin_html( $instance );
+			}
+
+			return '';
 		}
 		
 	} // end SFPlugin class

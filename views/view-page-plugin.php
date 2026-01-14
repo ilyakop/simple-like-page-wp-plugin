@@ -1,4 +1,5 @@
 <?php 
+global $sfplugin;
 // Check if shortcode return string and not bool 
 if ( is_string( $hide_cover ) ) 	$hide_cover 	= ( $hide_cover 	== 'true') ? true : false;
 if ( is_string( $show_facepile 	) ) $show_facepile 	= ( $show_facepile 	== 'true') ? true : false;
@@ -17,30 +18,39 @@ if ( $timeline === true ) 	$tabs[] = "timeline";
 if ( $events === true ) 	$tabs[] = "events";
 if ( $messages === true ) 	$tabs[] = "messages";   
 
+$options = $sfplugin->getPluginOptions();
+$click_to_load = isset( $instance['click_to_load'] ) ? $instance['click_to_load'] : $options['click_to_load'];
+$lazy_load = isset( $instance['lazy_load'] ) ? $instance['lazy_load'] : $options['lazy_load'];
+$placeholder_text = isset( $instance['placeholder_text'] ) && $instance['placeholder_text'] !== '' ? $instance['placeholder_text'] : $options['placeholder_text'];
+$placeholder_text = $placeholder_text ? $placeholder_text : 'Click to load Facebook content';
+
+if ( is_string( $click_to_load ) ) 	$click_to_load 	= ( $click_to_load 	== 'true') ? true : false;
+if ( is_string( $lazy_load ) ) 		$lazy_load 		= ( $lazy_load 		== 'true') ? true : false;
+$click_to_load = (bool) $click_to_load;
+$lazy_load = (bool) $lazy_load;
+
+$sfplugin->enqueueFrontendAssets();
+
 ?>
-<div id="fb-root"></div>
-<script>
-	(function(d){
-		var js, id = 'facebook-jssdk';
-		if (d.getElementById(id)) {return;}
-		js = d.createElement('script');
-		js.id = id;
-		js.async = true;
-		js.src = "//connect.facebook.net/<?php echo esc_js($locale); ?>/all.js#xfbml=1";
-		d.getElementsByTagName('head')[0].appendChild(js);
-	}(document));
-</script>
 <!-- SFPlugin by topdevs.net -->
 <!-- Page Plugin Code START -->
-<div class="<?php echo esc_attr($like_box_classes); ?>">
-	<div class="fb-page"
-		data-href="<?php echo esc_url( $url ); ?>"
-		data-width="<?php echo esc_attr( $width ); ?>"
-		data-height="<?php echo esc_attr( $height ); ?>"
-		data-hide-cover="<?php echo esc_attr( ( $hide_cover ) ? 'true' : 'false'); ?>"
-		data-show-facepile="<?php echo esc_attr( ( $show_facepile ) ? 'true' : 'false'); ?>"
-		data-small-header="<?php echo esc_attr( ( $small_header ) ? 'true' : 'false'); ?>"
-		data-tabs="<?php echo esc_attr( implode(",", $tabs) ); ?>">
-	</div>
+<div
+	class="<?php echo esc_attr( $like_box_classes ); ?>"
+	data-sfp-embed="1"
+	data-sfp-url="<?php echo esc_url( $url ); ?>"
+	data-sfp-width="<?php echo esc_attr( $width ); ?>"
+	data-sfp-height="<?php echo esc_attr( $height ); ?>"
+	data-sfp-hide-cover="<?php echo esc_attr( ( $hide_cover ) ? 'true' : 'false'); ?>"
+	data-sfp-show-facepile="<?php echo esc_attr( ( $show_facepile ) ? 'true' : 'false'); ?>"
+	data-sfp-small-header="<?php echo esc_attr( ( $small_header ) ? 'true' : 'false'); ?>"
+	data-sfp-tabs="<?php echo esc_attr( implode( ",", $tabs ) ); ?>"
+	data-sfp-locale="<?php echo esc_attr( $locale ); ?>"
+	data-sfp-click-to-load="<?php echo esc_attr( $click_to_load ? '1' : '0' ); ?>"
+	data-sfp-lazy="<?php echo esc_attr( $lazy_load ? '1' : '0' ); ?>"
+>
+	<button type="button" class="sfp-placeholder">
+		<?php echo esc_html( $placeholder_text ); ?>
+	</button>
+	<div class="sfp-embed" aria-live="polite"></div>
 </div>
 <!-- Page Plugin Code END -->

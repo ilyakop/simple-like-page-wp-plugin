@@ -1,19 +1,9 @@
 <div class="wrap">
-	<h2>Simple Facebook Menu</h2>
-	
-	<form method="POST" action="">
-		<select name="locale">
-		<?php foreach ( $this->locales as $code => $name ) : ?>
-			<option <?php selected(( $options['locale'] == $code ) ? 1 : 0 ); ?> value="<?php echo $code; ?>" ><?php echo $name; ?></option>
-		<?php endforeach; ?>
-		</select>
+	<h2>Simple Facebook Plugin</h2>
 
-		<p class="description">
-		Some Description
-		</p>
-
-		<?php submit_button('Save', 'primary', 'sfp_options_saved'); ?>
+	<form method="post" action="options.php">
+		<?php settings_fields( 'sfp_options' ); ?>
+		<?php do_settings_sections( 'sfp_plugin' ); ?>
+		<?php submit_button( 'Save Changes' ); ?>
 	</form>
-
-	<?php var_dump( $options ); ?>
 </div>

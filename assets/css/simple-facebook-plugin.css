@@ -1,0 +1,28 @@
+.sfp-container {
+	position: relative;
+	margin: 0;
+}
+
+.sfp-placeholder {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	min-height: 120px;
+	padding: 16px;
+	border: 1px solid #ccd0d4;
+	background: #f6f7f7;
+	color: #1d2327;
+	font-size: 14px;
+	line-height: 1.4;
+	text-align: center;
+	cursor: pointer;
+}
+
+.sfp-placeholder--auto {
+	cursor: default;
+}
+
+.sfp-embed {
+	margin-top: 12px;
+}
