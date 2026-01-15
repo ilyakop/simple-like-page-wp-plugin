@@ -65,6 +65,41 @@
 		return sdkPromise;
 	}
 
+	function setPlaceholderState(container, state) {
+		var placeholder = container.querySelector('.sfp-placeholder');
+		if (!placeholder) {
+			return null;
+		}
+
+		if (state === 'loading') {
+			placeholder.classList.add('sfp-placeholder--loading');
+			placeholder.disabled = true;
+			placeholder.removeAttribute('hidden');
+			placeholder.removeAttribute('aria-hidden');
+			placeholder.setAttribute('aria-busy', 'true');
+			placeholder.style.display = '';
+			return placeholder;
+		}
+
+		if (state === 'ready') {
+			placeholder.classList.remove('sfp-placeholder--loading');
+			placeholder.disabled = true;
+			placeholder.setAttribute('hidden', 'hidden');
+			placeholder.setAttribute('aria-hidden', 'true');
+			placeholder.removeAttribute('aria-busy');
+			placeholder.style.display = 'none';
+			return placeholder;
+		}
+
+		placeholder.classList.remove('sfp-placeholder--loading');
+		placeholder.disabled = false;
+		placeholder.removeAttribute('hidden');
+		placeholder.removeAttribute('aria-hidden');
+		placeholder.removeAttribute('aria-busy');
+		placeholder.style.display = '';
+		return placeholder;
+	}
+
 	function buildEmbed(container) {
 		if (!container || container.dataset.sfpLoaded === '1') {
 			return;
@@ -81,13 +116,7 @@
 			return;
 		}
 
-		var placeholder = container.querySelector('.sfp-placeholder');
-		if (placeholder) {
-			placeholder.setAttribute('hidden', 'hidden');
-			placeholder.setAttribute('aria-hidden', 'true');
-			placeholder.style.display = 'none';
-			placeholder.disabled = true;
-		}
+		var placeholder = setPlaceholderState(container, 'loading');
 
 		var fbPage = document.createElement('div');
 		fbPage.className = 'fb-page';
@@ -103,16 +132,15 @@
 
 		loadSdk(container).then(function() {
 			if (window.FB && window.FB.XFBML && typeof window.FB.XFBML.parse === 'function') {
-				window.FB.XFBML.parse(container);
+				window.FB.XFBML.parse(container, function() {
+					setPlaceholderState(container, 'ready');
+				});
+			} else {
+				setPlaceholderState(container, 'ready');
 			}
 		}).catch(function() {
 			container.dataset.sfpLoaded = '0';
-			if (placeholder) {
-				placeholder.removeAttribute('hidden');
-				placeholder.removeAttribute('aria-hidden');
-				placeholder.style.display = '';
-				placeholder.disabled = false;
-			}
+			setPlaceholderState(container, 'idle');
 			if (fbPage && fbPage.parentNode) {
 				fbPage.parentNode.removeChild(fbPage);
 			}

@@ -77,6 +77,9 @@ class SFPPagePluginWidget extends WP_Widget {
 		$instance['messages']		= isset( $new_instance['messages'] );
 		
 		$instance['locale']			= strip_tags( $new_instance['locale'] );
+		$instance['placeholder_text'] = sanitize_text_field( $new_instance['placeholder_text'] );
+		$instance['placeholder_bg_color'] = sanitize_hex_color( $new_instance['placeholder_bg_color'] );
+		$instance['placeholder_text_color'] = sanitize_hex_color( $new_instance['placeholder_text_color'] );
 	
 		// Add-ons hook
 		apply_filters( 'sfp_page_plugin_widget_update', $instance, $new_instance, $old_instance );
@@ -180,6 +183,18 @@ class SFPPagePluginWidget extends WP_Widget {
 			<?php endforeach; ?>
 			</select>
 		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('placeholder_text'); ?>"><?php _e('Placeholder Text'); ?></label>
+			<input class="widefat" id="<?php echo $this->get_field_id('placeholder_text'); ?>" name="<?php echo $this->get_field_name('placeholder_text'); ?>" type="text" value="<?php echo esc_attr( $placeholder_text ); ?>" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('placeholder_bg_color'); ?>"><?php _e('Placeholder Background Color'); ?></label>
+			<input class="sfp-color-field" id="<?php echo $this->get_field_id('placeholder_bg_color'); ?>" name="<?php echo $this->get_field_name('placeholder_bg_color'); ?>" type="text" value="<?php echo esc_attr( $placeholder_bg_color ); ?>" data-default-color="#e7f3ff" />
+		</p>
+		<p>
+			<label for="<?php echo $this->get_field_id('placeholder_text_color'); ?>"><?php _e('Placeholder Text Color'); ?></label>
+			<input class="sfp-color-field" id="<?php echo $this->get_field_id('placeholder_text_color'); ?>" name="<?php echo $this->get_field_name('placeholder_text_color'); ?>" type="text" value="<?php echo esc_attr( $placeholder_text_color ); ?>" data-default-color="#1877f2" />
+		</p>
 		<?php 
 			do_action( "sfp_page_plugin_widget_form_end", $instance, $this, $sfplugin );
 		?>
@@ -216,7 +231,9 @@ function sfp_get_page_plugin_defaults() {
 		'locale'		=> $defaults['locale'],
 		'click_to_load'	=> $defaults['click_to_load'],
 		'lazy_load'		=> $defaults['lazy_load'],
-		'placeholder_text' => $defaults['placeholder_text']
+		'placeholder_text' => $defaults['placeholder_text'],
+		'placeholder_bg_color' => $defaults['placeholder_bg_color'],
+		'placeholder_text_color' => $defaults['placeholder_text_color']
 	);
 }
 

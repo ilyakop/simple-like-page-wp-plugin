@@ -229,6 +229,13 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			// add custom css
 			wp_register_style( 'sfp-admin-style', plugin_dir_url(__FILE__) . '/lib/css/sfp-admin-style.css' );
 			wp_enqueue_style( 'sfp-admin-style' );
+
+			wp_enqueue_style( 'wp-color-picker' );
+			wp_enqueue_script( 'wp-color-picker' );
+			wp_add_inline_script(
+				'wp-color-picker',
+				'jQuery(function($){function initSfpColors(context){$(context).find(".sfp-color-field").wpColorPicker();}initSfpColors(document);$(document).on("widget-added widget-updated",function(e,widget){initSfpColors(widget);});});'
+			);
 		}
 
 		/**
@@ -329,7 +336,9 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'locale' => "en_US",
 				'click_to_load' => 0,
 				'lazy_load' => 1,
-				'placeholder_text' => 'Click to load Facebook content'
+				'placeholder_text' => 'Click to load Facebook content',
+				'placeholder_bg_color' => '#e7f3ff',
+				'placeholder_text_color' => '#1877f2'
 			);
 
 			$defaults = apply_filters( "sfp_default_options", $defaults );
@@ -387,6 +396,14 @@ if ( !class_exists( 'SFPlugin' ) ) {
 					$options['placeholder_text'] = sanitize_text_field( $_POST['placeholder_text'] );
 				}
 
+				if ( isset( $_POST['placeholder_bg_color'] ) ) {
+					$options['placeholder_bg_color'] = sanitize_hex_color( $_POST['placeholder_bg_color'] );
+				}
+
+				if ( isset( $_POST['placeholder_text_color'] ) ) {
+					$options['placeholder_text_color'] = sanitize_hex_color( $_POST['placeholder_text_color'] );
+				}
+
 				$this->savePluginOptions( $options );
 			}
 		}
@@ -430,6 +447,22 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'sfp_performance_privacy'
 			);
 
+			add_settings_field(
+				'sfp_placeholder_bg_color',
+				'Placeholder background color',
+				array( $this, 'renderPlaceholderBgField' ),
+				'sfp_plugin',
+				'sfp_performance_privacy'
+			);
+
+			add_settings_field(
+				'sfp_placeholder_text_color',
+				'Placeholder text color',
+				array( $this, 'renderPlaceholderTextColorField' ),
+				'sfp_plugin',
+				'sfp_performance_privacy'
+			);
+
 			add_settings_section(
 				'sfp_locale',
 				'Localization',
@@ -464,6 +497,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			$clean['click_to_load'] = ! empty( $options['click_to_load'] ) ? 1 : 0;
 			$clean['lazy_load'] = ! empty( $options['lazy_load'] ) ? 1 : 0;
 			$clean['placeholder_text'] = isset( $options['placeholder_text'] ) ? sanitize_text_field( $options['placeholder_text'] ) : $defaults['placeholder_text'];
+			$clean['placeholder_bg_color'] = isset( $options['placeholder_bg_color'] ) ? sanitize_hex_color( $options['placeholder_bg_color'] ) : $defaults['placeholder_bg_color'];
+			$clean['placeholder_text_color'] = isset( $options['placeholder_text_color'] ) ? sanitize_hex_color( $options['placeholder_text_color'] ) : $defaults['placeholder_text_color'];
 
 			return $clean;
 		}
@@ -509,6 +544,22 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			?>
 			<input type="text" class="regular-text" name="<?php echo esc_attr( $this->optionName ); ?>[placeholder_text]" value="<?php echo esc_attr( $options['placeholder_text'] ); ?>" />
 			<p class="description">Displayed before the embed loads.</p>
+			<?php
+		}
+
+		public function renderPlaceholderBgField() {
+			$options = $this->getPluginOptions();
+			?>
+			<input type="text" class="sfp-color-field" name="<?php echo esc_attr( $this->optionName ); ?>[placeholder_bg_color]" value="<?php echo esc_attr( $options['placeholder_bg_color'] ); ?>" data-default-color="#e7f3ff" />
+			<p class="description">Background color for the placeholder.</p>
+			<?php
+		}
+
+		public function renderPlaceholderTextColorField() {
+			$options = $this->getPluginOptions();
+			?>
+			<input type="text" class="sfp-color-field" name="<?php echo esc_attr( $this->optionName ); ?>[placeholder_text_color]" value="<?php echo esc_attr( $options['placeholder_text_color'] ); ?>" data-default-color="#1877f2" />
+			<p class="description">Text color for the placeholder.</p>
 			<?php
 		}
 
@@ -595,6 +646,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			$messages_default = isset( $defaults['messages'] ) ? (bool) $defaults['messages'] : false;
 			$locale_default = isset( $defaults['locale'] ) ? $defaults['locale'] : 'en_US';
 			$placeholder_default = isset( $defaults['placeholder_text'] ) ? $defaults['placeholder_text'] : '';
+			$placeholder_bg_default = isset( $defaults['placeholder_bg_color'] ) ? $defaults['placeholder_bg_color'] : '';
+			$placeholder_text_color_default = isset( $defaults['placeholder_text_color'] ) ? $defaults['placeholder_text_color'] : '';
 
 			wp_register_script(
 				'sfp-block-editor',
@@ -616,6 +669,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'messages' => $messages_default,
 				'locale' => $locale_default,
 				'placeholderText' => $placeholder_default,
+				'placeholderBgColor' => $placeholder_bg_default,
+				'placeholderTextColor' => $placeholder_text_color_default,
 			);
 
 			wp_add_inline_script(
@@ -640,6 +695,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 					'locale' => array( 'type' => 'string', 'default' => $locale_default ),
 					'clickToLoad' => array( 'type' => 'boolean' ),
 					'placeholderText' => array( 'type' => 'string', 'default' => $placeholder_default ),
+					'placeholderBgColor' => array( 'type' => 'string', 'default' => $placeholder_bg_default ),
+					'placeholderTextColor' => array( 'type' => 'string', 'default' => $placeholder_text_color_default ),
 				),
 			) );
 		}
@@ -665,6 +722,14 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 			if ( ! empty( $attributes['placeholderText'] ) ) {
 				$instance['placeholder_text'] = $attributes['placeholderText'];
+			}
+
+			if ( ! empty( $attributes['placeholderBgColor'] ) ) {
+				$instance['placeholder_bg_color'] = $attributes['placeholderBgColor'];
+			}
+
+			if ( ! empty( $attributes['placeholderTextColor'] ) ) {
+				$instance['placeholder_text_color'] = $attributes['placeholderTextColor'];
 			}
 
 			if ( function_exists( 'sfp_render_page_plugin_html' ) ) {
