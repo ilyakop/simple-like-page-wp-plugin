@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: Simple Like Page Plugin – Fast & Privacy-Friendly Page Embeds
+ * Plugin Name: Simple Like Page Plugin
  * Plugin URI: https://topdevs.net/simple-like-page-plugin/
- * Description: A lightweight, privacy-friendly way to embed social network Page feeds on WordPress with performance and consent in mind.
+ * Description: A lightweight, privacy-friendly way to embed Facebook Page feeds on WordPress with performance and consent in mind.
  * Version: 2.0.0
  * Requires at least: 5.8
  * Requires PHP: 7.2
@@ -86,9 +86,10 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			add_action( 'admin_enqueue_scripts',	array( $this, 'enqueueScriptsAdmin') );
 			add_action( 'init', array( $this, 'registerBlock' ) );
 
-			// Add settings link on Plugins page
-			$plugin = "simple-facebook-plugin/simple-facebook-plugin.php";
-			//add_filter( "plugin_action_links_$plugin", array( $this, 'pluginSettingsLink') );
+			// Add settings links on Plugins page
+			$plugin = plugin_basename( __FILE__ );
+			add_filter( "plugin_action_links_$plugin", array( $this, 'pluginSettingsLink') );
+			add_filter( 'plugin_row_meta', array( $this, 'pluginRowMeta' ), 10, 2 );
 
 			// Allow addons add actions
 			do_action( 'sfp_add_actions', $this );
@@ -263,7 +264,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function pluginMenu() {
 			
-			add_options_page( 'Simple Facebook Plugin', 'Simple Facebook', 'manage_options', 'sfp_plugin', array( $this, "pluginMenuView" ) );
+			add_options_page( 'Simple Like Page Plugin', 'Simple Like Page Plugin', 'manage_options', 'sfp_plugin', array( $this, "pluginMenuView" ) );
 		}
 
 		/**
@@ -289,6 +290,9 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function adminNotice() {
 
+			// don't show any notices for now
+			return;
+
 			global $current_user;
 			$user_id = $current_user->ID;
 
@@ -297,7 +301,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 				echo '<div class="updated"><p>';
 
-				printf( __('Thanks for using our <strong>Simple Facebook Plugin</strong>! We have some other great WordPress plugins <a href="http://codecanyon.net/user/topdevs/portfolio?ref=topdevs">View Portfolio</a> | <a href="%1$s">Hide this</a>'), '?sfp_ignore_4=0');
+				printf( __('Thanks for using our <strong>Simple Like Page Plugin</strong>! We have some other great WordPress plugins <a href="http://codecanyon.net/user/topdevs/portfolio?ref=topdevs">View Portfolio</a> | <a href="%1$s">Hide this</a>'), '?sfp_ignore_4=0');
 
 				echo "</p></div>";
 
@@ -325,9 +329,46 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 			$settings_link = '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>'; 
 
-			array_unshift( $links, $settings_link );
+			$inserted = false;
+			$updated_links = array();
+			foreach ( $links as $link ) {
+				$updated_links[] = $link;
+				if ( strpos( $link, 'Visit plugin site' ) !== false ) {
+					$updated_links[] = $settings_link;
+					$inserted = true;
+				}
+			}
 
-			return $links; 
+			if ( ! $inserted ) {
+				$updated_links[] = $settings_link;
+			}
+
+			return $updated_links; 
+		}
+
+		public function pluginRowMeta( $links, $file ) {
+
+			if ( $file !== plugin_basename( __FILE__ ) ) {
+				return $links;
+			}
+
+			$settings_link = '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>';
+
+			$inserted = false;
+			$updated_links = array();
+			foreach ( $links as $link ) {
+				$updated_links[] = $link;
+				if ( stripos( $link, 'Visit plugin site' ) !== false ) {
+					$updated_links[] = $settings_link;
+					$inserted = true;
+				}
+			}
+
+			if ( ! $inserted ) {
+				$updated_links[] = $settings_link;
+			}
+
+			return $updated_links;
 		}
 
 		/**
