@@ -1,13 +1,20 @@
 <?php
-/*
-Plugin Name: Simple Like Page Plugin
-Plugin URI: http://plugins.topdevs.net/simple-like-page-plugin
-Description: Allows you to integrate Facebook "Page Plugin" into your WordPress Site.
-Version: 2.0
-Author: Illia Online
-Author URI: https://illia.onine
-License: GPLv2 or later
-*/
+/**
+ * Plugin Name: Simple Like Page Plugin – Fast & Privacy-Friendly Page Embeds
+ * Plugin URI: https://topdevs.net/simple-like-page-plugin/
+ * Description: A lightweight, privacy-friendly way to embed social network Page feeds on WordPress with performance and consent in mind.
+ * Version: 2.0.0
+ * Requires at least: 5.8
+ * Requires PHP: 7.2
+ * Author: topdevs.net
+ * Author URI: https://topdevs.net
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: simple-like-page-plugin
+ *
+ * This plugin is not affiliated with, endorsed by, or sponsored by Meta Platforms, Inc.
+ * All trademarks belong to their respective owners.
+ */
 
 define( "SFP_VERSION", '2.0' );
 

@@ -1,102 +1,172 @@
-﻿=== Simple Like Page Plugin ===
+﻿=== Simple Like Page Plugin – Fast & Privacy-Friendly Page Embeds ===
 
-Contributors: topdevs, illiaonline
-Tags: social, facebook, fb, fb like, like box, likebox, page plugin, widget, shortcode, responsive, template tag, sidebar, fb page plugin
-Requires at least: 4.0
-Tested up to: 6.5.3
-Stable tag: trunk
+Contributors: topdevs
+Tags: facebook, embeds, social, privacy, performance
+Requires at least: 5.8
+Tested up to: 6.9
+Requires PHP: 7.2
+Stable tag: 2.0.0
 License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Lets you easily embed and promote any public Facebook Page on your WordPress website. Your visitors can like, share, see Page events or even sand a message without having to leave your site. You can use the Like Page plugin for any Page that is not restricted, for example, by country or age.
+Embed Meta™ Page content without slowing down your site or loading third-party scripts before user interaction.
 
 == Description ==
 
-= Description =
+Embedding social Page content often slows down WordPress sites and loads third-party scripts before visitors interact.
 
-Simple Like Page Plugin enables Facebook Page admins to promote their Pages and embed a simple feed of content from a Page into any WordPress blog. The Facebook **Page Plugin** we use in our plugin enables users to:
+Simple Like Page Plugin helps you embed Meta™ Page content without hurting performance, by delaying script loading until interaction or visibility.
 
-* See how many users already like this Page, and which of their friends like it too
-* Read recent posts from the Page
-* Like the Page with one click, without needing to visit the Page
-* See Page Events
-* Send messages to your Page\*
+This reduces unnecessary requests, improves Core Web Vitals, and gives you control over when external scripts load.
 
-\**To enable messaging on your Facebook page go to your Page Settings. In the row Messages check Allow people to contact my Page privately by showing the Message button*
+This plugin is not affiliated with, endorsed by, or sponsored by Meta Platforms, Inc.
+All trademarks belong to their respective owners.
 
-You can easily integrate Like Page using WordPress Widgets and Shortcodes. Visit [Plugin Page](http://topdevs.net/simple-like-page-plugin/ "See 'Simple Like Page Plugin' Page") for more info and examples.
+== Key Features ==
 
-= Our Premium Plugins =
+= Privacy-First Loading =
 
-* [Smart Grid Gallery](http://topdevs.net/smart-grid-gallery/ "See plugin demo") - Responsive WordPress Gallery
-* [Smart Product Viewer](http://topdevs.net/smart-product-viewer/ "See plugin demo") - 360º Animation Plugin
-* [Smart Before After Viewer](http://topdevs.net/before-after-viewer/ "See plugin demo") - Image Comparison Plugin
-* [Smart Photo Gallery](http://topdevs.net/smart-photo-gallery/ "See plugin demo") - Responsive WordPress Gallery
+* Delays Facebook script loading until user interaction
+* Optional lazy loading when the embed enters the viewport
+* Helps reduce third-party requests on initial page load
 
-Visit our [CodeCanyon Portfolio](http://codecanyon.net/user/topdevs/portfolio?ref=topdevs "Our Plugins on CodeCanyon") to see plugins reviews and prices.
+= Performance Focused =
 
+* Lightweight HTML placeholder before activation
+* No render-blocking Facebook SDK on initial page load
 
-== Installation ==
-**Installation**
+= Multiple Integration Options =
 
-1. Upload `simple-facebook-plugin` directory to your `/wp-content/plugins` directory
-1. Activate plugin in WordPress admin
+* Gutenberg block
+* Shortcode
+* Classic widget
+* Theme template tag
 
-**Customization**
+= Extensible =
 
-1. In WordPress dashboard, go to **Appearance > Widgets**. 
-1. Drag and Drop **SFP - Like Page Plugin** into your sidebar.
-1. Click triangle near **SFP - Like Page Plugin** header.
-1. Enter your Facebook Page URL (not your profile URL).
-1. Choose width, height and other options you like.
+* Hooks and filters for add-ons
+* Architecture designed for future consent-based extensions
 
-**or**
+== How It Works ==
 
-Use `[sfp-page-plugin]` shortcode inside your post or page. This shortcode support all default parametrs:
+1. Renders a placeholder instead of the Facebook embed
+2. Loads Facebook scripts only after user interaction (or when in view, if enabled)
+3. Renders the Page Plugin once scripts are available
 
+This approach is designed to improve performance and reduce unnecessary third-party requests.
 
-* url - any Fan Page URL (not your personal page!)
-* width - number (min 280, max 500)
-* height - number
-* hide_cover - *true* or *false*
-* show_facepile - *true* or *false*
-* small_header - *true* or *false*
-* timeline - *true* or *false*
-* events - *true* or *false*
-* messages - *true* or *false*
-* locale - valid language code (e.g. *en_US* or *es_MX*) see [.xml file](http://www.facebook.com/translations/FacebookLocales.xml "Facebook locales XML") with all Facebook locales
+== Usage ==
 
+You can add the Facebook Page Plugin in four different ways.
 
-If you want Page Plugin *320 pixels width* and *showing posts* you need to use it next way:
+= 1. Gutenberg Block (Recommended) =
 
-`[sfp-page-plugin width=320 show_posts=true url=http://www.facebook.com/yourPageName]`
+1. Edit any post or page
+2. Click **Add Block (+)**
+3. Search for **Facebook Page Plugin**
+4. Insert the block
+5. Paste your Facebook Page URL
+6. Adjust layout and privacy options in the block sidebar
 
-**or**
+= 2. Shortcode =
 
-Use `sfp_page_plugin()` template tag in your theme files.
+Use the shortcode inside any post or page:
 
-`<?php if ( function_exists("sfp_page_plugin") ) {
+`sfp-page-plugin`
+
+Shortcode parameters:
+
+* `url`
+* `width`
+* `height`
+* `hide_cover`
+* `show_facepile`
+* `small_header`
+* `timeline`
+* `events`
+* `messages`
+* `locale`
+* `click_to_load`
+* `lazy_load`
+* `placeholder_text`
+* `placeholder_bg_color`
+* `placeholder_text_color`
+
+Example:
+
+`[sfp-page-plugin url="https://www.facebook.com/WordPress" width="320" timeline="true"]`
+
+= 3. Widget =
+
+1. Go to **Appearance -> Widgets**
+2. Add **SFP - Like Page Plugin**
+3. Enter your Facebook Page URL
+4. Configure display options
+5. Save
+
+= 4. Template Tag (Advanced) =
+
+For theme developers:
+
+```
+<?php if ( function_exists( 'sfp_page_plugin' ) ) {
 	$args = array(
-		'url'			=> 'https://www.facebook.com/WordPress/',
-		'width'		=> '300',
-		'hide_cover'=> true,
-		'locale'		=> 'en_US'
+		'url' => 'https://www.facebook.com/WordPress/',
+		'width' => '300',
+		'timeline' => true,
+		'locale' => 'en_US'
 	);
 	sfp_page_plugin( $args );
-} ?>`
+} ?>
+```
+
+== Performance & Privacy ==
+
+By default, the plugin delays Facebook loading until interaction. If you enable lazy loading, scripts are loaded when the embed is in view.
+
+Facebook may set cookies or process data once the embed loads. You are responsible for updating your privacy policy as needed.
+
+== Settings ==
+
+The plugin includes a **Performance & Privacy** section where you can control:
+
+* Click-to-load (default off)
+* Lazy loading (default on)
+* Placeholder text
+* Placeholder colors
+
+You can also set a default Facebook Page URL and locale in the settings screen.
+
+== Compatibility ==
+
+* Works with modern WordPress themes
+* Compatible with caching and performance plugins
+* Supports Gutenberg and Classic Editor
 
 == Frequently Asked Questions ==
 
-= I see the message “Error: Not a valid Facebook Page url.”. What am I doing wrong? =
+= Does this plugin load Facebook automatically? =
+No. Facebook scripts load only after interaction by default. You can also enable lazy loading.
 
-Page Plugin is only for Pages and **not** for Profiles, Events and Groups.
+= Is this plugin GDPR compliant? =
+The plugin helps control when Facebook scripts load, but compliance depends on your site configuration and privacy policy.
 
-== Screenshots ==
+= Is this an official Facebook plugin? =
+No. This is a third-party plugin that uses Facebook's Page Plugin embed.
 
-1. Widget in the dashboard.
-2. Simple Widget on your website.
-3. Widget with posts on your website.
+== Installation ==
+
+1. Upload the plugin to the `/wp-content/plugins/` directory
+2. Activate the plugin through the WordPress admin
+3. Add the block, shortcode, widget, or template tag
 
 == Changelog ==
+
+= 2.0.0 =
+* Privacy-first loading with click-to-load and lazy loading
+* Centralized script loading and consent-ready hooks
+* Gutenberg block with performance controls
+* New settings screen for performance and placeholder options
 
 = 1.5.2 =
 * Teseted up to WordPress 6.3.2
@@ -129,7 +199,12 @@ Page Plugin is only for Pages and **not** for Profiles, Events and Groups.
 * Added Norwegian(bokmal) locale to widget
 
 = 1.2 =
-Plugin structure reorganized. Shortcode and template tag functionality added
+* Plugin structure reorganized. Shortcode and template tag functionality added
 
 = 1.1 =
-More than 20 Facebook Locales added
+* More than 20 Facebook Locales added
+
+== Support ==
+
+Found a bug or have a feature request? Please use the **Support** tab on WordPress.org.
+
