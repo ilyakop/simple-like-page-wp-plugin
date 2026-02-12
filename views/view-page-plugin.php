@@ -80,8 +80,13 @@ $sfplugin->enqueueFrontendAssets();
 	data-sfp-click-to-load="<?php echo esc_attr( $click_to_load ? '1' : '0' ); ?>"
 	data-sfp-lazy="<?php echo esc_attr( $lazy_load ? '1' : '0' ); ?>"
 >
-	<button type="button" class="sfp-placeholder"<?php echo $placeholder_style_attr; ?>>
-		<?php echo esc_html( $placeholder_text ); ?>
+	<button
+		type="button"
+		class="sfp-placeholder"
+		<?php echo $placeholder_style_attr; ?>
+		<?php echo $click_to_load ? '' : 'aria-label="' . esc_attr( $placeholder_text ) . '"'; ?>
+	>
+		<?php echo $click_to_load ? esc_html( $placeholder_text ) : ''; ?>
 	</button>
 	<div class="sfp-embed" aria-live="polite"></div>
 </div>

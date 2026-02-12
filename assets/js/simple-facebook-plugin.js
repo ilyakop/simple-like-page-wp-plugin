@@ -71,6 +71,12 @@
 			return null;
 		}
 
+		if (!placeholder.dataset.sfpOriginalText) {
+			placeholder.dataset.sfpOriginalText = placeholder.textContent;
+		}
+
+		var clickEnabled = container.dataset.sfpClickToLoad === '1';
+
 		if (state === 'loading') {
 			placeholder.classList.add('sfp-placeholder--loading');
 			placeholder.disabled = true;
@@ -78,6 +84,8 @@
 			placeholder.removeAttribute('aria-hidden');
 			placeholder.setAttribute('aria-busy', 'true');
 			placeholder.style.display = '';
+			placeholder.textContent = '';
+			placeholder.setAttribute('aria-label', placeholder.dataset.sfpOriginalText || '');
 			return placeholder;
 		}
 
@@ -88,6 +96,8 @@
 			placeholder.setAttribute('aria-hidden', 'true');
 			placeholder.removeAttribute('aria-busy');
 			placeholder.style.display = 'none';
+			placeholder.textContent = placeholder.dataset.sfpOriginalText || placeholder.textContent;
+			placeholder.removeAttribute('aria-label');
 			return placeholder;
 		}
 
@@ -97,6 +107,8 @@
 		placeholder.removeAttribute('aria-hidden');
 		placeholder.removeAttribute('aria-busy');
 		placeholder.style.display = '';
+		placeholder.textContent = placeholder.dataset.sfpOriginalText || placeholder.textContent;
+		placeholder.removeAttribute('aria-label');
 		return placeholder;
 	}
 
