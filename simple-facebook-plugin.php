@@ -88,7 +88,6 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 			// Add settings links on Plugins page
 			$plugin = plugin_basename( __FILE__ );
-			add_filter( "plugin_action_links_$plugin", array( $this, 'pluginSettingsLink') );
 			add_filter( 'plugin_row_meta', array( $this, 'pluginRowMeta' ), 10, 2 );
 
 			// Allow addons add actions
@@ -324,27 +323,6 @@ if ( !class_exists( 'SFPlugin' ) ) {
 		*
 		* @since 1.3
 		*/
-
-		public function pluginSettingsLink ( $links ) {
-
-			$settings_link = '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>'; 
-
-			$inserted = false;
-			$updated_links = array();
-			foreach ( $links as $link ) {
-				$updated_links[] = $link;
-				if ( strpos( $link, 'Visit plugin site' ) !== false ) {
-					$updated_links[] = $settings_link;
-					$inserted = true;
-				}
-			}
-
-			if ( ! $inserted ) {
-				$updated_links[] = $settings_link;
-			}
-
-			return $updated_links; 
-		}
 
 		public function pluginRowMeta( $links, $file ) {
 
