@@ -311,6 +311,10 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			
 			global $current_user;
 			$user_id = $current_user->ID;
+
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
+			}
 			
 			/* If user clicks to ignore the notice, add that to their user meta */
 			if ( isset( $_GET['sfp_ignore_4'] ) && '0' == $_GET['sfp_ignore_4'] ) {
@@ -398,6 +402,9 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 			// If submit button pressed
 			if ( isset( $_POST['sfp_options_saved'] ) ) {
+				if ( ! current_user_can( 'manage_options' ) ) {
+					return;
+				}
 
 				$options = $this->getPluginOptions();
 
