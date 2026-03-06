@@ -14,7 +14,7 @@
 	var defaults = window.sfpBlockDefaults || {};
 
 	wp.blocks.registerBlockType('simple-facebook-plugin/page', {
-		title: __('Facebook Page Plugin', 'simple-facebook-plugin'),
+		title: __('Simple Like Page Plugin', 'simple-facebook-plugin'),
 		icon: 'facebook',
 		category: 'widgets',
 		attributes: {
@@ -35,30 +35,6 @@
 		},
 		edit: function(props) {
 			var attrs = props.attributes;
-			var placeholderText = attrs.placeholderText || __('Click to load Facebook content', 'simple-facebook-plugin');
-			var previewStyle = {};
-			if (attrs.placeholderBgColor) {
-				var tint = (function(hex, ratio) {
-					var clean = hex.replace('#', '');
-					if (clean.length !== 6) {
-						return hex;
-					}
-					var r = parseInt(clean.substring(0, 2), 16);
-					var g = parseInt(clean.substring(2, 4), 16);
-					var b = parseInt(clean.substring(4, 6), 16);
-					r = Math.round(r + (255 - r) * ratio);
-					g = Math.round(g + (255 - g) * ratio);
-					b = Math.round(b + (255 - b) * ratio);
-					return '#' + [r, g, b].map(function(value) {
-						var hexValue = value.toString(16);
-						return hexValue.length === 1 ? '0' + hexValue : hexValue;
-					}).join('');
-				})(attrs.placeholderBgColor, 0.6);
-				previewStyle.background = 'linear-gradient(135deg, ' + attrs.placeholderBgColor + ' 0%, ' + tint + ' 100%)';
-			}
-			if (attrs.placeholderTextColor) {
-				previewStyle.color = attrs.placeholderTextColor;
-			}
 
 			return [
 				el(InspectorControls, { key: 'controls' },
@@ -139,11 +115,9 @@
 				),
 				el(Placeholder, {
 					key: 'preview',
-					label: __('Facebook Page Plugin', 'simple-facebook-plugin'),
-					instructions: attrs.url ? __('Embed loads on the front end.', 'simple-facebook-plugin') : __('Add a Facebook Page URL to preview.', 'simple-facebook-plugin')
-				},
-					el('div', { className: 'sfp-block-preview', style: previewStyle }, placeholderText)
-				)
+					label: __('Simple Like Page Plugin', 'simple-facebook-plugin'),
+					instructions: attrs.url ? __('Facebook embed loads on the front end.', 'simple-facebook-plugin') : __('Add a Facebook Page URL to preview.', 'simple-facebook-plugin')
+				})
 			];
 		},
 		save: function() {
