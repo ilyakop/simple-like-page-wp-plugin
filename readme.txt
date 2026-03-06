@@ -63,7 +63,7 @@ You can add the Facebook Page Plugin in four different ways.
 
 1. Edit any post or page
 2. Click **Add Block (+)**
-3. Search for **Facebook Page Plugin**
+3. Search for **Simple Like Page Plugin**
 4. Insert the block
 5. Paste your Facebook Page URL
 6. Adjust layout and privacy options in the block sidebar
