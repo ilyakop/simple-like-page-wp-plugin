@@ -82,7 +82,7 @@ class SFPPagePluginWidget extends WP_Widget {
 		$instance['placeholder_text_color'] = sanitize_hex_color( $new_instance['placeholder_text_color'] );
 	
 		// Add-ons hook
-		apply_filters( 'sfp_page_plugin_widget_update', $instance, $new_instance, $old_instance );
+		$instance = apply_filters( 'sfp_page_plugin_widget_update', $instance, $new_instance, $old_instance );
 		
 		return $instance;
 	}
@@ -106,8 +106,6 @@ class SFPPagePluginWidget extends WP_Widget {
 			// Add-ons hook
 			do_action( "sfp_page_plugin_widget_form_start", $instance, $this, $sfplugin );
 
-			// Oxygen Builder campaign
-			printf( __('<p>Try <a href="https://oxygenbuilder.com/?utm_medium=wpdash&utm_source=wp-admin&utm_campaign=simple-facebook-plugin">Oxygen Builder</a> the new way to build WordPress websites.</p>'));
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id('title'); ?>"><?php _e('Title'); ?></label> 
@@ -195,12 +193,30 @@ class SFPPagePluginWidget extends WP_Widget {
 			<label for="<?php echo $this->get_field_id('placeholder_text_color'); ?>"><?php _e('Placeholder Text Color'); ?></label>
 			<input class="sfp-color-field" id="<?php echo $this->get_field_id('placeholder_text_color'); ?>" name="<?php echo $this->get_field_name('placeholder_text_color'); ?>" type="text" value="<?php echo esc_attr( $placeholder_text_color ); ?>" data-default-color="#1877f2" />
 		</p>
-		<?php 
+		<?php
 			do_action( "sfp_page_plugin_widget_form_end", $instance, $this, $sfplugin );
 		?>
 
+		<?php if ( ! sfp_is_pro_active() ) :
+			$upgrade_url = esc_url( add_query_arg( array(
+				'utm_source'   => 'wp-admin',
+				'utm_medium'   => 'widget',
+				'utm_campaign' => 'sfp-upgrade',
+			), apply_filters( 'sfp_pro_upgrade_url', 'https://topdevs.net/simple-social-pro/' ) ) );
+		?>
+		<p style="margin-top:12px;padding-top:12px;border-top:1px solid #ddd;">
+			<?php printf(
+				wp_kses(
+					__( 'Want popup triggers &amp; a floating follow button? <a href="%s" target="_blank" rel="noopener noreferrer">Upgrade to Pro</a>', 'simple-like-page-plugin' ),
+					array( 'a' => array( 'href' => array(), 'target' => array(), 'rel' => array() ) )
+				),
+				$upgrade_url
+			); ?>
+		</p>
+		<?php endif; ?>
+
 	<?php }
-	
+
 } // class SFPPagePluginWidget
 
 /**
@@ -251,6 +267,11 @@ function sfp_render_page_plugin_html( $instance ) {
 	// Add-ons hook
 	$instance = apply_filters( "sfp_before_page_plugin", $instance, $sfplugin );
 
+	$should_render = apply_filters( 'sfp_should_render_embed', true, $instance );
+	if ( ! $should_render ) {
+		return '';
+	}
+
 	extract( array_merge( sfp_get_page_plugin_defaults(), $instance ) );
 
 	ob_start();
@@ -258,7 +279,9 @@ function sfp_render_page_plugin_html( $instance ) {
 	// include Page Plugin view
 	include( $sfplugin->pluginPath . 'views/view-page-plugin.php' );
 
-	return ob_get_clean();
+	$html = ob_get_clean();
+
+	return apply_filters( 'sfp_rendered_page_plugin_html', $html, $instance );
 }
 
 /**

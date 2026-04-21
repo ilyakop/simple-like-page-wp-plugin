@@ -11,10 +11,11 @@
 	var ToggleControl = wp.components.ToggleControl;
 	var Placeholder = wp.components.Placeholder;
 	var ColorPalette = wp.components.ColorPalette;
+	var ExternalLink = wp.components.ExternalLink;
 	var defaults = window.sfpBlockDefaults || {};
 
 	wp.blocks.registerBlockType('simple-facebook-plugin/page', {
-		title: __('Simple Like Page Plugin', 'simple-facebook-plugin'),
+		title: __('Simple Like Page', 'simple-facebook-plugin'),
 		icon: 'facebook',
 		category: 'widgets',
 		attributes: {
@@ -111,11 +112,19 @@
 							value: attrs.placeholderTextColor,
 							onChange: function(value) { props.setAttributes({ placeholderTextColor: value }); }
 						})
+					),
+					!defaults.isPro && el(PanelBody, { title: __('Upgrade to Pro', 'simple-facebook-plugin'), initialOpen: true },
+						el('p', { style: { margin: '0 0 8px 0' } },
+							__('Add popup triggers, a floating follow button, and display rules.', 'simple-facebook-plugin')
+						),
+						el(ExternalLink, { href: defaults.upgradeUrl, style: { fontWeight: 600 } },
+							__('Learn more', 'simple-facebook-plugin')
+						)
 					)
 				),
 				el(Placeholder, {
 					key: 'preview',
-					label: __('Simple Like Page Plugin', 'simple-facebook-plugin'),
+					label: __('Simple Like Page', 'simple-facebook-plugin'),
 					instructions: attrs.url ? __('Facebook embed loads on the front end.', 'simple-facebook-plugin') : __('Add a Facebook Page URL to preview.', 'simple-facebook-plugin')
 				})
 			];

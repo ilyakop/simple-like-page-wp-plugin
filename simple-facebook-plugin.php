@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name: Simple Like Page Plugin
+ * Plugin Name: Simple Like Page
  * Plugin URI: https://topdevs.net/simple-like-page-plugin/
  * Description: A lightweight, privacy-friendly way to embed Facebook Page feeds on WordPress with performance and consent in mind.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Requires at least: 5.8
  * Requires PHP: 7.2
  * Author: topdevs.net
@@ -16,7 +16,11 @@
  * All trademarks belong to their respective owners.
  */
 
-define( "SFP_VERSION", '2.0' );
+define( "SFP_VERSION", '2.0.1' );
+
+function sfp_is_pro_active() {
+	return class_exists( 'SSP_Pro' );
+}
 
 /**
 * Main SF Plugin Class
@@ -263,7 +267,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function pluginMenu() {
 			
-			add_options_page( 'Simple Like Page Plugin', 'Simple Like Page Plugin', 'manage_options', 'sfp_plugin', array( $this, "pluginMenuView" ) );
+			add_options_page( 'Simple Like Page', 'Simple Like Page', 'manage_options', 'sfp_plugin', array( $this, "pluginMenuView" ) );
 		}
 
 		/**
@@ -288,23 +292,46 @@ if ( !class_exists( 'SFPlugin' ) ) {
 		*/
 
 		public function adminNotice() {
-
-			// don't show any notices for now
-			return;
-
-			global $current_user;
-			$user_id = $current_user->ID;
-
-			/* Check that the user hasn't already clicked to ignore the message */
-			if ( ! get_user_meta( $user_id, 'sfp_ignore_notice_4') ) {
-
-				echo '<div class="updated"><p>';
-
-				printf( __('Thanks for using our <strong>Simple Like Page Plugin</strong>! We have some other great WordPress plugins <a href="http://codecanyon.net/user/topdevs/portfolio?ref=topdevs">View Portfolio</a> | <a href="%1$s">Hide this</a>'), '?sfp_ignore_4=0');
-
-				echo "</p></div>";
-
+			if ( ! current_user_can( 'manage_options' ) ) {
+				return;
 			}
+
+			if ( sfp_is_pro_active() ) {
+				return;
+			}
+
+			$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
+			if ( ! $screen || 'settings_page_sfp_plugin' !== $screen->id ) {
+				return;
+			}
+
+			if ( isset( $_GET['sfp_hide_pro_notice'] ) && check_admin_referer( 'sfp_hide_pro_notice' ) ) {
+				update_user_meta( get_current_user_id(), 'sfp_hide_pro_notice', 1 );
+			}
+
+			if ( get_user_meta( get_current_user_id(), 'sfp_hide_pro_notice', true ) ) {
+				return;
+			}
+
+			$upgrade_url = esc_url( add_query_arg( array(
+					'utm_source'   => 'wp-admin',
+					'utm_medium'   => 'notice',
+					'utm_campaign' => 'sfp-upgrade',
+				), apply_filters( 'sfp_pro_upgrade_url', 'https://topdevs.net/simple-social-pro/' ) ) );
+			$dismiss_url = wp_nonce_url(
+				add_query_arg( 'sfp_hide_pro_notice', '1' ),
+				'sfp_hide_pro_notice'
+			);
+
+			echo '<div class="notice notice-info is-dismissible"><p>';
+			echo wp_kses_post(
+				sprintf(
+					'Need popup triggers, floating follow button, and display rules? <a href="%1$s" target="_blank" rel="noopener noreferrer">Upgrade to Pro</a>. <a href="%2$s">Dismiss</a>',
+					$upgrade_url,
+					esc_url( $dismiss_url )
+				)
+			);
+			echo '</p></div>';
 		}
 
 		public function ignoreNotices() {
@@ -334,20 +361,29 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				return $links;
 			}
 
-			$settings_link = '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>';
+			$extra_links = array( '<a href="' . menu_page_url( "sfp_plugin", false ) . '">Settings</a>' );
+
+			if ( ! sfp_is_pro_active() ) {
+				$upgrade_url = esc_url( add_query_arg( array(
+					'utm_source'   => 'wp-admin',
+					'utm_medium'   => 'plugin-row',
+					'utm_campaign' => 'sfp-upgrade',
+				), apply_filters( 'sfp_pro_upgrade_url', 'https://topdevs.net/simple-social-pro/' ) ) );
+				$extra_links[] = '<a href="' . $upgrade_url . '" target="_blank" rel="noopener noreferrer">Upgrade to Pro</a>';
+			}
 
 			$inserted = false;
 			$updated_links = array();
 			foreach ( $links as $link ) {
 				$updated_links[] = $link;
 				if ( stripos( $link, 'Visit plugin site' ) !== false ) {
-					$updated_links[] = $settings_link;
+					array_push( $updated_links, ...$extra_links );
 					$inserted = true;
 				}
 			}
 
 			if ( ! $inserted ) {
-				$updated_links[] = $settings_link;
+				array_push( $updated_links, ...$extra_links );
 			}
 
 			return $updated_links;
@@ -472,12 +508,19 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'sfp_performance_privacy'
 			);
 
+			add_settings_section(
+				'sfp_placeholder',
+				'Placeholder',
+				array( $this, 'renderPlaceholderSection' ),
+				'sfp_plugin'
+			);
+
 			add_settings_field(
 				'sfp_placeholder_text',
 				'Placeholder text',
 				array( $this, 'renderPlaceholderTextField' ),
 				'sfp_plugin',
-				'sfp_performance_privacy'
+				'sfp_placeholder'
 			);
 
 			add_settings_field(
@@ -485,7 +528,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'Placeholder background color',
 				array( $this, 'renderPlaceholderBgField' ),
 				'sfp_plugin',
-				'sfp_performance_privacy'
+				'sfp_placeholder'
 			);
 
 			add_settings_field(
@@ -493,7 +536,7 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'Placeholder text color',
 				array( $this, 'renderPlaceholderTextColorField' ),
 				'sfp_plugin',
-				'sfp_performance_privacy'
+				'sfp_placeholder'
 			);
 
 			add_settings_section(
@@ -542,6 +585,10 @@ if ( !class_exists( 'SFPlugin' ) ) {
 
 		public function renderLocaleSection() {
 			echo '<p>Select the Facebook SDK locale used when loading embeds.</p>';
+		}
+
+		public function renderPlaceholderSection() {
+			echo '<p>Customize the text and colors shown before the embed loads.</p>';
 		}
 
 		public function renderUrlField() {
@@ -704,6 +751,12 @@ if ( !class_exists( 'SFPlugin' ) ) {
 				'placeholderText' => $placeholder_default,
 				'placeholderBgColor' => $placeholder_bg_default,
 				'placeholderTextColor' => $placeholder_text_color_default,
+				'isPro' => sfp_is_pro_active(),
+				'upgradeUrl' => add_query_arg( array(
+					'utm_source'   => 'wp-admin',
+					'utm_medium'   => 'block-editor',
+					'utm_campaign' => 'sfp-upgrade',
+				), apply_filters( 'sfp_pro_upgrade_url', 'https://topdevs.net/simple-social-pro/' ) ),
 			);
 
 			wp_add_inline_script(
@@ -764,6 +817,8 @@ if ( !class_exists( 'SFPlugin' ) ) {
 			if ( ! empty( $attributes['placeholderTextColor'] ) ) {
 				$instance['placeholder_text_color'] = $attributes['placeholderTextColor'];
 			}
+
+			$instance = apply_filters( 'sfp_block_instance', $instance, $attributes );
 
 			if ( function_exists( 'sfp_render_page_plugin_html' ) ) {
 				return sfp_render_page_plugin_html( $instance );

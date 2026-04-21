@@ -49,3 +49,100 @@
 .sfp-icon .sfp-tooltip-wrap:hover {
 	display: block;
 }
+
+.sfp-pro-badge {
+	display: inline-block;
+	padding: 1px 5px;
+	margin: 0 0 4px;
+	border-radius: 8px;
+	background: #2271b1;
+	color: #fff;
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.3px;
+	line-height: 1.4;
+	text-transform: uppercase;
+	vertical-align: middle;
+}
+
+.sfp-setting-label {
+	display: block;
+}
+
+.sfp-tabs .nav-tab {
+	display: inline-flex;
+	align-items: center;
+}
+
+.sfp-tab-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	position: relative;
+}
+
+.sfp-tab-label .dashicons {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	color: #2271b1;
+}
+
+.sfp-setting-heading {
+	position: relative;
+	padding-right: 0;
+}
+
+.sfp-pro-heading {
+	position: relative;
+	display: inline-block;
+	padding-right: 32px;
+}
+
+.sfp-pro-badge--heading {
+	position: absolute;
+	top: -4px;
+	right: 0;
+	margin: 0;
+}
+
+.sfp-pro-badge--inline {
+	margin-left: 6px;
+	vertical-align: text-top;
+}
+
+.sfp-learn-more-link {
+	margin-left: 8px;
+}
+
+.sfp-settings-section {
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 8px;
+	padding: 16px 18px;
+	margin: 0 0 16px;
+	box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+
+.sfp-settings-section .form-table {
+	margin-top: 10px;
+}
+
+.sfp-settings-section .form-table th {
+	padding-top: 16px;
+}
+
+.sfp-settings-section .form-table td {
+	padding-top: 13px;
+}
+
+.sfp-section-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0 0 8px;
+}
+
+.sfp-section-title .dashicons {
+	color: #2271b1;
+}

@@ -1,5 +1,8 @@
 <?php 
 global $sfplugin;
+if ( ! apply_filters( 'sfp_should_render_embed', true, isset( $instance ) ? $instance : array() ) ) {
+	return;
+}
 // Check if shortcode return string and not bool 
 if ( is_string( $hide_cover ) ) 	$hide_cover 	= ( $hide_cover 	== 'true') ? true : false;
 if ( is_string( $show_facepile 	) ) $show_facepile 	= ( $show_facepile 	== 'true') ? true : false;
@@ -63,23 +66,26 @@ $placeholder_style_attr = $placeholder_styles ? ' style="' . esc_attr( implode( 
 
 $sfplugin->enqueueFrontendAssets();
 
+$container_attributes = array(
+	'class' => $like_box_classes,
+	'data-sfp-embed' => '1',
+	'data-sfp-url' => esc_url( $url ),
+	'data-sfp-width' => $width,
+	'data-sfp-height' => $height,
+	'data-sfp-hide-cover' => ( $hide_cover ) ? 'true' : 'false',
+	'data-sfp-show-facepile' => ( $show_facepile ) ? 'true' : 'false',
+	'data-sfp-small-header' => ( $small_header ) ? 'true' : 'false',
+	'data-sfp-tabs' => implode( ",", $tabs ),
+	'data-sfp-locale' => $locale,
+	'data-sfp-click-to-load' => $click_to_load ? '1' : '0',
+	'data-sfp-lazy' => $lazy_load ? '1' : '0',
+);
+$container_attributes = apply_filters( 'sfp_container_attributes', $container_attributes, $instance );
+
 ?>
 <!-- SFPlugin by topdevs.net -->
 <!-- Page Plugin Code START -->
-<div
-	class="<?php echo esc_attr( $like_box_classes ); ?>"
-	data-sfp-embed="1"
-	data-sfp-url="<?php echo esc_url( $url ); ?>"
-	data-sfp-width="<?php echo esc_attr( $width ); ?>"
-	data-sfp-height="<?php echo esc_attr( $height ); ?>"
-	data-sfp-hide-cover="<?php echo esc_attr( ( $hide_cover ) ? 'true' : 'false'); ?>"
-	data-sfp-show-facepile="<?php echo esc_attr( ( $show_facepile ) ? 'true' : 'false'); ?>"
-	data-sfp-small-header="<?php echo esc_attr( ( $small_header ) ? 'true' : 'false'); ?>"
-	data-sfp-tabs="<?php echo esc_attr( implode( ",", $tabs ) ); ?>"
-	data-sfp-locale="<?php echo esc_attr( $locale ); ?>"
-	data-sfp-click-to-load="<?php echo esc_attr( $click_to_load ? '1' : '0' ); ?>"
-	data-sfp-lazy="<?php echo esc_attr( $lazy_load ? '1' : '0' ); ?>"
->
+<div<?php foreach ( $container_attributes as $attr_name => $attr_value ) : ?> <?php echo esc_attr( $attr_name ); ?>="<?php echo esc_attr( $attr_value ); ?>"<?php endforeach; ?>>
 	<button
 		type="button"
 		class="sfp-placeholder"

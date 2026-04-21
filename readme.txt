@@ -1,11 +1,11 @@
-﻿=== Simple Like Page Plugin – Fast & Privacy-Friendly Page Embeds ===
+﻿=== Simple Like Page – Fast & Privacy-Friendly Page Embeds ===
 
 Contributors: topdevs
 Tags: facebook, embeds, social, privacy, performance
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.2
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -15,7 +15,7 @@ Embed Meta™ Page content without slowing down your site or loading third-party
 
 Embedding social Page content often slows down WordPress sites and loads third-party scripts before visitors interact.
 
-Simple Like Page Plugin helps you embed Meta™ Page content without hurting performance, by delaying script loading until interaction or visibility.
+Simple Like Page helps you embed Meta™ Page content without hurting performance, by delaying script loading until interaction or visibility.
 
 This reduces unnecessary requests, improves Core Web Vitals, and gives you control over when external scripts load.
 
@@ -63,7 +63,7 @@ You can add the Facebook Page Plugin in four different ways.
 
 1. Edit any post or page
 2. Click **Add Block (+)**
-3. Search for **Simple Like Page Plugin**
+3. Search for **Simple Like Page**
 4. Insert the block
 5. Paste your Facebook Page URL
 6. Adjust layout and privacy options in the block sidebar
@@ -108,7 +108,7 @@ Example:
 
 For theme developers:
 
-```
+`
 <?php if ( function_exists( 'sfp_page_plugin' ) ) {
 	$args = array(
 		'url' => 'https://www.facebook.com/WordPress/',
@@ -118,7 +118,7 @@ For theme developers:
 	);
 	sfp_page_plugin( $args );
 } ?>
-```
+`
 
 == Performance & Privacy ==
 
