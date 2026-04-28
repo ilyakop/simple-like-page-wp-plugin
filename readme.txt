@@ -162,6 +162,9 @@ No. This is a third-party plugin that uses Facebook's Page Plugin embed.
 
 == Changelog ==
 
+= 2.0.1 =
+* Simple Social Pro integration added
+
 = 2.0.0 =
 * Privacy-first loading with click-to-load and lazy loading
 * Centralized script loading and consent-ready hooks
